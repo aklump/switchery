@@ -1,5 +1,8 @@
 ![Switchery](http://i.imgur.com/xJAM3Jq.png)
 
+## Forked
+This fork removes all the js manipulation of the DOM styles and instead applies classes to represent states.  The markup is also taken from [this article](http://www.designcouch.com/home/why/2013/09/19/ios7-style-pure-css-toggle/).  Most of the settings are removed and callbacks have been added to implement this with the Drupal 7 ajax API.
+
 ## Description
 
 Switchery is a simple component that helps you turn your default HTML checkbox inputs into beautiful iOS 7 style switches in just few simple steps. You can easily customize switches, so that they match your design perfectly.
@@ -19,42 +22,6 @@ Supported by all modern browsers: Chrome, Firefox, Opera, Safari, IE8+
 <script src="dist/switchery.js"></script>
 ```
 
-##### Component:
-
-```shell
-$ component install abpetkov/switchery
-```
-
-##### Bower:
-
-```shell
-$ bower install switchery
-```
-
-##### Rails
-
-To use Switchery in your rails app, add this to your Gemfile:
-
-```rails
-gem 'switchery-rails'
-```
-
-Or go to [Switchery Rails gem page](https://rubygems.org/gems/switchery-rails) for more info, documentation and instructions.
-
-##### Angular JS
-
-For thorough installation and usage instructions on how to use Switchery with Angular JS, check out this repo: [servergrove/NgSwitchery](https://github.com/servergrove/NgSwitchery)
-
-##### Meteor
-
-You can install Switchery to your Meteor.js app via:
-
-```shell
-$ meteor add abpetkov:switchery
-```
-
-[Switchery on Atmosphere](https://atmospherejs.com/abpetkov/switchery)
-
 ## Usage
 
 ```js
@@ -68,27 +35,26 @@ Use the above for the standalone version.
 
 ```js
 defaults = {
-    color             : '#64bd63'
-  , secondaryColor    : '#dfdfdf'
-  , jackColor         : '#fff'
-  , jackSecondaryColor: null
   , className         : 'switchery'
   , disabled          : false
-  , disabledOpacity   : 0.5
-  , speed             : '0.4s'
-  , size              : 'default'
 };
 ```
 
-- `color` : color of the switch element (HEX or RGB value)
-- `secondaryColor` : secondary color for background color and border, when the switch is off
-- `jackColor` : default color of the jack/handle element
-- `jackSecondaryColor` : color of unchecked jack/handle element
 - `className` : class name for the switch element (by default styled in switchery.css)
 - `disabled` : enable or disable click events and changing the state of the switch (boolean value)
-- `disabledOpacity` : opacity of the switch when it's disabled (0 to 1)
-- `speed` : length of time that the transition will take, ex. '0.4s', '1s', '2.2s' (Note: transition speed of the handle is twice shorter)
-- `size` : size of the switch element (small or large)
+
+## Drupal
+
+    $('.is-ios-switch-ready')
+    .removeClass('is-ios-switch-ready')
+    .each(function () {
+        new Switchery(this, {
+          onClick : function (el, toggle, obj) {
+            // if Drupal is ajaxing, then do not let the click happen.
+            return !el.classList.contains('progress-disabled');
+          }
+        });
+    });
 
 ## API
 
@@ -151,40 +117,6 @@ var switchery = new Switchery(elem, { disabled: true, disabledOpacity: 0.75 });
 ```
 
 Adding `disabled` or `readonly` attribute to the native input element will result in the switch being disabled as well.
-
-##### Colored
-
-You can change the primary(on) and secondary(off) color of the switch to fit your design perfectly. Accomplish this, changing the `color` and `secondaryColor` options. The jack colors are also customizable via the `jackColor` and the `jackSecondaryColor` options. Below is a good example of what you can accomplish using those.
-
-```js
-var switchery = new Switchery(elem, { color: '#7c8bc7', jackColor: '#9decff' });
-```
-
-![JackColor](http://i.imgur.com/7ztX29e.png)
-
-or
-
-```js
-var switchery = new Switchery(elem, { color: '#faab43', secondaryColor: '#fC73d0', jackColor: '#fcf45e', jackSecondaryColor: '#c8ff77' });
-```
-
-![JackSecondaryColor](http://i.imgur.com/KS0H8ac.png)
-
-Any other changes regarding colors you want to make, should take place in `switchery.css`.
-
-##### Sizes
-
-Since version 0.7.0 you can change the sizes of the switch element via `size`. Giving it a value of `small` or `large` will result in adding `switchery-small` or `switchery-large` classes respectively, which will change the switch size.
-
-Not using this property will render the default sized switch element.
-
-```js
-var switchery = new Switchery(elem, { size: 'small' });
-// ... or
-var switchery = new Switchery(elem, { size: 'large' });
-```
-
-![SwitchSizes](http://i.imgur.com/TVlgvx7.png)
 
 ##### Checking state
 
