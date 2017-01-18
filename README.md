@@ -1,7 +1,7 @@
 ![Switchery](http://i.imgur.com/xJAM3Jq.png)
 
 ## Forked
-This fork removes all the js manipulation of the DOM styles and instead applies classes to represent states.  The markup is also taken from [this article](http://www.designcouch.com/home/why/2013/09/19/ios7-style-pure-css-toggle/).  Most of the settings are removed and callbacks have been added to implement this with the Drupal 7 ajax API.
+This fork removes all the js manipulation of the DOM styles and instead applies classes to represent states.  The markup is also taken from [this article](http://www.designcouch.com/home/why/2013/09/19/ios7-style-pure-css-toggle/).  Most of the settings are removed and callbacks have been added to implement this with the Drupal 7 ajax API. A SASS file has been added which you can copy in it's entirety into your project and avoid using the supplied css file.
 
 ## Description
 
