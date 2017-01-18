@@ -56,11 +56,11 @@ require.helper.semVerSort = function(a, b) {
 
 /**
  * Find and require a module which name starts with the provided name.
- * If multiple modules exists, the highest semver is used.
+ * If multiple modules exists, the highest semver is used. 
  * This function can only be used for remote dependencies.
 
  * @param {String} name - module name: `user~repo`
- * @param {Boolean} returnPath - returns the canonical require path if true,
+ * @param {Boolean} returnPath - returns the canonical require path if true, 
  *                               otherwise it returns the epxorted module
  */
 require.latest = function (name, returnPath) {
@@ -83,7 +83,7 @@ require.latest = function (name, returnPath) {
           semVerCandidates.push({version: version, name: moduleName});
         } else {
           otherCandidates.push({version: version, name: moduleName});
-        }
+        } 
     }
   }
   if (semVerCandidates.concat(otherCandidates).length === 0) {
@@ -141,7 +141,7 @@ require.define = function (name, exports) {
 require.register("abpetkov~transitionize@0.0.3", function (exports, module) {
 
 /**
- * Transitionize 0.0.2
+ * Transitionize 0.0.3
  * https://github.com/abpetkov/transitionize
  *
  * Authored by Alexander Petkov
@@ -943,7 +943,7 @@ FastClick.notNeeded = function(layer) {
 
 		if (FastClick.prototype.deviceIsAndroid) {
 			metaViewport = document.querySelector('meta[name=viewport]');
-
+			
 			if (metaViewport) {
 				// Chrome on Android with user-scalable="no" doesn't need FastClick (issue #89)
 				if (metaViewport.content.indexOf('user-scalable=no') !== -1) {
@@ -1258,12 +1258,16 @@ exports.engine = function(obj){
 
 });
 
-require.register("component~matches-selector@0.1.5", function (exports, module) {
+require.register("component~matches-selector@0.1.6", function (exports, module) {
 /**
  * Module dependencies.
  */
 
-var query = require('component~query@0.0.3');
+try {
+  var query = require('component~query@0.0.3');
+} catch (err) {
+  var query = require('component~query@0.0.3');
+}
 
 /**
  * Element prototype.
@@ -1308,25 +1312,42 @@ function match(el, selector) {
 
 });
 
-require.register("component~closest@0.1.4", function (exports, module) {
-var matches = require('component~matches-selector@0.1.5')
+require.register("component~closest@1.0.1", function (exports, module) {
+/**
+ * Module Dependencies
+ */
 
-module.exports = function (element, selector, checkYoSelf, root) {
-  element = checkYoSelf ? {parentNode: element} : element
+try {
+  var matches = require('component~matches-selector@0.1.6')
+} catch (err) {
+  var matches = require('component~matches-selector@0.1.6')
+}
 
-  root = root || document
+/**
+ * Export `closest`
+ */
 
-  // Make sure `element !== document` and `element != null`
-  // otherwise we get an illegal invocation
-  while ((element = element.parentNode) && element !== document) {
-    if (matches(element, selector))
-      return element
-    // After `matches` on the edge case that
-    // the selector matches the root
-    // (when the root is not the document)
-    if (element === root)
-      return
+module.exports = closest
+
+/**
+ * Closest
+ *
+ * @param {Element} el
+ * @param {String} selector
+ * @param {Element} scope (optional)
+ */
+
+function closest (el, selector, scope) {
+  scope = scope || document.documentElement;
+
+  // walk up the dom
+  while (el && el !== scope) {
+    if (matches(el, selector)) return el;
+    el = el.parentNode;
   }
+
+  // check scope for match
+  return matches(el, selector) ? el : null;
 }
 
 });
@@ -1336,7 +1357,7 @@ require.register("component~delegate@0.2.3", function (exports, module) {
  * Module dependencies.
  */
 
-var closest = require('component~closest@0.1.4')
+var closest = require('component~closest@1.0.1')
   , event = require('component~event@0.1.4');
 
 /**
@@ -1559,10 +1580,13 @@ function parse(event) {
 
 require.register("switchery", function (exports, module) {
 /**
- * Switchery 0.8.1
+ * Switchery 0.8.2
  * http://abpetkov.github.io/switchery/
  *
- * Authored by Alexander Petkov
+ * Forked to use css classes only by Aaron Klump
+ * https://github.com/aklump
+ *
+ * Original Author Alexander Petkov
  * https://github.com/abpetkov
  *
  * Copyright 2013-2015, Alexander Petkov
@@ -1575,10 +1599,8 @@ require.register("switchery", function (exports, module) {
  * External dependencies.
  */
 
-var transitionize = require('abpetkov~transitionize@0.0.3')
-  , fastclick = require('ftlabs~fastclick@v0.6.11')
-  , classes = require('component~classes@1.2.1')
-  , events = require('component~events@1.0.9');
+var fastclick = require('ftlabs~fastclick@v0.6.11'),
+    events    = require('component~events@1.0.9');
 
 /**
  * Expose `Switchery`.
@@ -1593,15 +1615,9 @@ module.exports = Switchery;
  */
 
 var defaults = {
-    color             : '#64bd63'
-  , secondaryColor    : '#dfdfdf'
-  , jackColor         : '#fff'
-  , jackSecondaryColor: null
-  , className         : 'switchery'
-  , disabled          : false
-  , disabledOpacity   : 0.5
-  , speed             : '0.4s'
-  , size              : 'default'
+  className: 'switchery',
+  disabled : false,
+  onClick  : null,
 };
 
 /**
@@ -1633,9 +1649,8 @@ function Switchery(element, options) {
  *
  * @api private
  */
-
-Switchery.prototype.hide = function() {
-  this.element.style.display = 'none';
+Switchery.prototype.hide = function () {
+  this.element.classList.add(this.options.className + '-processed');
 };
 
 /**
@@ -1643,8 +1658,7 @@ Switchery.prototype.hide = function() {
  *
  * @api private
  */
-
-Switchery.prototype.show = function() {
+Switchery.prototype.show = function () {
   var switcher = this.create();
   this.insertAfter(this.element, switcher);
 };
@@ -1655,11 +1669,8 @@ Switchery.prototype.show = function() {
  * @returns {Object} this.switcher
  * @api private
  */
-
-Switchery.prototype.create = function() {
+Switchery.prototype.create = function () {
   this.switcher = document.createElement('span');
-  this.jack = document.createElement('small');
-  this.switcher.appendChild(this.jack);
   this.switcher.className = this.options.className;
   this.events = events(this.switcher, this);
 
@@ -1673,8 +1684,7 @@ Switchery.prototype.create = function() {
  * @param {Object} target
  * @api private
  */
-
-Switchery.prototype.insertAfter = function(reference, target) {
+Switchery.prototype.insertAfter = function (reference, target) {
   reference.parentNode.insertBefore(target, reference.nextSibling);
 };
 
@@ -1684,101 +1694,20 @@ Switchery.prototype.insertAfter = function(reference, target) {
  * @param {Boolean} clicked - we need this in order to uncheck the input when the switch is clicked
  * @api private
  */
-
 Switchery.prototype.setPosition = function (clicked) {
-  var checked = this.isChecked()
-    , switcher = this.switcher
-    , jack = this.jack;
+  var checked = this.isChecked();
 
   if (clicked && checked) checked = false;
   else if (clicked && !checked) checked = true;
 
   if (checked === true) {
     this.element.checked = true;
-
-    if (window.getComputedStyle) jack.style.left = parseInt(window.getComputedStyle(switcher).width) - parseInt(window.getComputedStyle(jack).width) + 'px';
-    else jack.style.left = parseInt(switcher.currentStyle['width']) - parseInt(jack.currentStyle['width']) + 'px';
-
-    if (this.options.color) this.colorize();
-    this.setSpeed();
-  } else {
-    jack.style.left = 0;
+    this.switcher.classList.add(this.options.className + '-is-on');
+  }
+  else {
     this.element.checked = false;
-    this.switcher.style.boxShadow = 'inset 0 0 0 0 ' + this.options.secondaryColor;
-    this.switcher.style.borderColor = this.options.secondaryColor;
-    this.switcher.style.backgroundColor = (this.options.secondaryColor !== defaults.secondaryColor) ? this.options.secondaryColor : '#fff';
-    this.jack.style.backgroundColor = (this.options.jackSecondaryColor !== this.options.jackColor) ? this.options.jackSecondaryColor : this.options.jackColor;
-    this.setSpeed();
+    this.switcher.classList.remove(this.options.className + '-is-on');
   }
-};
-
-/**
- * Set speed.
- *
- * @api private
- */
-
-Switchery.prototype.setSpeed = function() {
-  var switcherProp = {}
-    , jackProp = {
-        'background-color': this.options.speed
-      , 'left': this.options.speed.replace(/[a-z]/, '') / 2 + 's'
-    };
-
-  if (this.isChecked()) {
-    switcherProp = {
-        'border': this.options.speed
-      , 'box-shadow': this.options.speed
-      , 'background-color': this.options.speed.replace(/[a-z]/, '') * 3 + 's'
-    };
-  } else {
-    switcherProp = {
-        'border': this.options.speed
-      , 'box-shadow': this.options.speed
-    };
-  }
-
-  transitionize(this.switcher, switcherProp);
-  transitionize(this.jack, jackProp);
-};
-
-/**
- * Set switch size.
- *
- * @api private
- */
-
-Switchery.prototype.setSize = function() {
-  var small = 'switchery-small'
-    , normal = 'switchery-default'
-    , large = 'switchery-large';
-
-  switch (this.options.size) {
-    case 'small':
-      classes(this.switcher).add(small)
-      break;
-    case 'large':
-      classes(this.switcher).add(large)
-      break;
-    default:
-      classes(this.switcher).add(normal)
-      break;
-  }
-};
-
-/**
- * Set switch color.
- *
- * @api private
- */
-
-Switchery.prototype.colorize = function() {
-  var switcherHeight = this.switcher.offsetHeight / 2;
-
-  this.switcher.style.backgroundColor = this.options.color;
-  this.switcher.style.borderColor = this.options.color;
-  this.switcher.style.boxShadow = 'inset 0 0 0 ' + switcherHeight + 'px ' + this.options.color;
-  this.jack.style.backgroundColor = this.options.jackColor;
 };
 
 /**
@@ -1787,8 +1716,7 @@ Switchery.prototype.colorize = function() {
  * @param {Boolean} state
  * @api private
  */
-
-Switchery.prototype.handleOnchange = function(state) {
+Switchery.prototype.handleOnchange = function (state) {
   if (document.dispatchEvent) {
     var event = document.createEvent('HTMLEvents');
     event.initEvent('change', true, true);
@@ -1804,17 +1732,16 @@ Switchery.prototype.handleOnchange = function(state) {
  *
  * @api private
  */
-
-Switchery.prototype.handleChange = function() {
+Switchery.prototype.handleChange = function () {
   var self = this
-    , el = this.element;
+    , el   = this.element;
 
   if (el.addEventListener) {
-    el.addEventListener('change', function() {
+    el.addEventListener('change', function () {
       self.setPosition();
     });
   } else {
-    el.attachEvent('onchange', function() {
+    el.attachEvent('onchange', function () {
       self.setPosition();
     });
   }
@@ -1825,8 +1752,7 @@ Switchery.prototype.handleChange = function() {
  *
  * @api private
  */
-
-Switchery.prototype.handleClick = function() {
+Switchery.prototype.handleClick = function () {
   var switcher = this.switcher;
 
   fastclick(switcher);
@@ -1838,10 +1764,14 @@ Switchery.prototype.handleClick = function() {
  *
  * @api private
  */
-
-Switchery.prototype.bindClick = function() {
-  var parent = this.element.parentNode.tagName.toLowerCase()
+Switchery.prototype.bindClick = function () {
+  var parent      = this.element.parentNode.tagName.toLowerCase()
     , labelParent = (parent === 'label') ? false : true;
+
+  // Give a chance to abort based on callback returning false.
+  if (typeof this.options.onClick === 'function' && !this.options.onClick(this.element, this.switcher, this)) {
+    return;
+  }
 
   this.setPosition(labelParent);
   this.handleOnchange(this.element.checked);
@@ -1852,8 +1782,7 @@ Switchery.prototype.bindClick = function() {
  *
  * @api private
  */
-
-Switchery.prototype.markAsSwitched = function() {
+Switchery.prototype.markAsSwitched = function () {
   this.element.setAttribute('data-switchery', true);
 };
 
@@ -1862,8 +1791,7 @@ Switchery.prototype.markAsSwitched = function() {
  *
  * @api private
  */
-
-Switchery.prototype.markedAsSwitched = function() {
+Switchery.prototype.markedAsSwitched = function () {
   return this.element.getAttribute('data-switchery');
 };
 
@@ -1872,11 +1800,9 @@ Switchery.prototype.markedAsSwitched = function() {
  *
  * @api private
  */
-
-Switchery.prototype.init = function() {
+Switchery.prototype.init = function () {
   this.hide();
   this.show();
-  this.setSize();
   this.setPosition();
   this.markAsSwitched();
   this.handleChange();
@@ -1889,8 +1815,7 @@ Switchery.prototype.init = function() {
  * @returns {Boolean}
  * @api public
  */
-
-Switchery.prototype.isChecked = function() {
+Switchery.prototype.isChecked = function () {
   return this.element.checked;
 };
 
@@ -1900,8 +1825,7 @@ Switchery.prototype.isChecked = function() {
  * @returns {Boolean}
  * @api public
  */
-
-Switchery.prototype.isDisabled = function() {
+Switchery.prototype.isDisabled = function () {
   return this.options.disabled || this.element.disabled || this.element.readOnly;
 };
 
@@ -1910,8 +1834,7 @@ Switchery.prototype.isDisabled = function() {
  *
  * @api public
  */
-
-Switchery.prototype.destroy = function() {
+Switchery.prototype.destroy = function () {
   this.events.unbind();
 };
 
@@ -1920,13 +1843,11 @@ Switchery.prototype.destroy = function() {
  *
  * @api public
  */
-
-Switchery.prototype.enable = function() {
-  if (!this.options.disabled) return;
+Switchery.prototype.enable = function () {
   if (this.options.disabled) this.options.disabled = false;
   if (this.element.disabled) this.element.disabled = false;
   if (this.element.readOnly) this.element.readOnly = false;
-  this.switcher.style.opacity = 1;
+  this.switcher.classList.remove(this.options.className + '-is-disabled');
   this.events.bind('click', 'bindClick');
 };
 
@@ -1935,13 +1856,11 @@ Switchery.prototype.enable = function() {
  *
  * @api public
  */
-
-Switchery.prototype.disable = function() {
-  if (this.options.disabled) return;
+Switchery.prototype.disable = function () {
   if (!this.options.disabled) this.options.disabled = true;
   if (!this.element.disabled) this.element.disabled = true;
   if (!this.element.readOnly) this.element.readOnly = true;
-  this.switcher.style.opacity = this.options.disabledOpacity;
+  this.switcher.classList.add(this.options.className + '-is-disabled');
   this.destroy();
 };
 
@@ -1954,4 +1873,4 @@ if (typeof exports == "object") {
 } else {
   (this || window)["Switchery"] = require("switchery");
 }
-})();
+})()
